@@ -1,0 +1,19 @@
+{
+  "compilerOptions": {
+    "outDir": "build",
+    "target": "ESNext",
+    "lib": ["ES6"],
+    "strict": true,
+    "strictNullChecks": false,
+    "module": "CommonJS",
+    "preserveValueImports": false,
+    "esModuleInterop": true,
+    "moduleResolution": "node",
+    "forceConsistentCasingInFileNames": true,
+    "allowJs": true,
+    "rootDir": ".",
+    "allowSyntheticDefaultImports": true
+  },
+  "include": ["**/*"],
+  "exclude": ["./node_modules", "./build/"]
+}

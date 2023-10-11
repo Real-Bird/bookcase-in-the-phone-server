@@ -1,0 +1,44 @@
+{
+  "name": "bookcase-in-the-phone-back",
+  "version": "0.1.0",
+  "description": "back-end for BiP",
+  "main": "index.ts",
+  "scripts": {
+    "start": "cross-env NODE_ENV=production pm2 start build/index.js --watch -i 1 && pm2 log",
+    "build": "tsc",
+    "dev": "nodemon --exec node --experimental-modules --es-module-specifier-resolution=node --loader ts-node/esm src/index.ts",
+    "preview": "nodemon --exec node dist/index"
+  },
+  "author": "Real-Bird",
+  "license": "ISC",
+  "dependencies": {
+    "connect-mongo": "^4.6.0",
+    "cookie-parser": "^1.4.6",
+    "cors": "^2.8.5",
+    "cross-env": "^7.0.3",
+    "dotenv": "^16.0.3",
+    "express": "^4.18.2",
+    "express-session": "^1.17.3",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^6.9.0",
+    "passport": "^0.6.0",
+    "passport-google-oauth": "^2.0.0",
+    "passport-google-oauth20": "^2.0.0",
+    "pm2": "^5.2.2"
+  },
+  "devDependencies": {
+    "@types/cookie-parser": "^1.4.3",
+    "@types/cors": "^2.8.13",
+    "@types/express": "^4.17.16",
+    "@types/express-session": "^1.17.5",
+    "@types/jsonwebtoken": "^9.0.3",
+    "@types/node": "^18.11.18",
+    "@types/passport": "^1.0.11",
+    "@types/passport-google-oauth": "^1.0.42",
+    "@types/passport-google-oauth20": "^2.0.11",
+    "localtunnel": "^2.0.2",
+    "nodemon": "^2.0.20",
+    "ts-node": "^10.9.1",
+    "typescript": "^4.9.4"
+  }
+}
