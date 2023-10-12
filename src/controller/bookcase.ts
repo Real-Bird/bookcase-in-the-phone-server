@@ -1,13 +1,41 @@
-import { Request, Response } from "express";
-import Book from "../db/book";
+import { Request, Response, NextFunction } from "express";
+import Books from "../db/book";
+import { checkedToken, revalidateAccessToken } from "../libs/jwtValidate";
+
+const REFRESH_TOKEN_KEY = "bip-rf-token" as const;
+
+export const getToken = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const token = req.headers.authorization.split(" ")[1];
+  if (!token) {
+    return res
+      .status(401)
+      .json({ error: true, message: "Not found access token" });
+  }
+  const verifiedToken = checkedToken(token);
+  let revalidatedToken;
+  if (!verifiedToken) {
+    revalidatedToken = revalidateAccessToken(req.cookies[REFRESH_TOKEN_KEY]);
+    if (!revalidatedToken) {
+      return res.status(403).json({
+        error: true,
+        message: "Your refresh token is not available",
+      });
+    }
+  }
+  req.user = {
+    id: verifiedToken ? verifiedToken.id : revalidatedToken.userId,
+    name: verifiedToken ? verifiedToken.username : revalidatedToken.username,
+  };
+  next();
+};
 
 export const bookList = async (req: Request, res: Response) => {
-  const { token } = req.query;
-  if (!token) {
-    return res.status(403).json({ error: true, message: "Not Authorized" });
-  }
-  const bookList = await Book.find(
-    { userId: token },
+  const bookList = await Books.find(
+    { userId: req.user.id },
     {
       _id: 1,
       title: 1,
@@ -25,7 +53,6 @@ export const bookList = async (req: Request, res: Response) => {
 };
 
 export const savedBookInfo = async (req: Request, res: Response) => {
-  const { token } = req.query;
   const {
     publisher,
     author,
@@ -39,11 +66,8 @@ export const savedBookInfo = async (req: Request, res: Response) => {
     end_date,
     review,
   } = req.body;
-  if (!token) {
-    return res.status(403).json({ error: true, message: "Not Authorized" });
-  }
-  await Book.create({
-    userId: token,
+  await Books.create({
+    userId: req.user.id,
     publisher,
     author,
     translator,
@@ -62,12 +86,14 @@ export const savedBookInfo = async (req: Request, res: Response) => {
 };
 
 export const getBookInfoByIsbn = async (req: Request, res: Response) => {
-  const { token, isbn } = req.query;
-  if (!token || !isbn) {
-    return res.status(401).json({ error: true, message: `Not Authorization` });
+  const { isbn } = req.query;
+  if (!isbn) {
+    return res
+      .status(400)
+      .json({ error: true, message: "We need the ISBN number" });
   }
-  const bookInfo = await Book.findOne({
-    userId: token,
+  const bookInfo = await Books.findOne({
+    userId: req.user.id,
     ea_isbn: isbn,
   });
   if (!bookInfo) {
@@ -81,15 +107,17 @@ export const getBookInfoByIsbn = async (req: Request, res: Response) => {
 };
 
 export const updateBookInfoByIsbn = async (req: Request, res: Response) => {
-  const { token, isbn } = req.query;
-  if (!token || !isbn) {
-    return res.status(401).json({ error: true, message: `Not Authorization` });
+  const { isbn } = req.query;
+  if (!isbn) {
+    return res
+      .status(401)
+      .json({ error: true, message: "We need the ISBN number" });
   }
   const {
     body: { review, start_date, end_date },
   } = req.body;
-  const bookInfo = await Book.findOne({
-    userId: token,
+  const bookInfo = await Books.findOne({
+    userId: req.user.id,
     ea_isbn: isbn,
   });
   if (!bookInfo) {
@@ -112,12 +140,14 @@ export const updateBookInfoByIsbn = async (req: Request, res: Response) => {
 };
 
 export const checkBookByIsbn = async (req: Request, res: Response) => {
-  const { token, isbn } = req.query;
-  if (!token || !isbn) {
-    return res.status(401).json({ error: true, message: `Not Authorization` });
+  const { isbn } = req.query;
+  if (!isbn) {
+    return res
+      .status(401)
+      .json({ error: true, message: "We need the ISBN number" });
   }
-  const bookInfo = await Book.findOne({
-    userId: token,
+  const bookInfo = await Books.findOne({
+    userId: req.user.id,
     ea_isbn: isbn,
   });
   if (!bookInfo) {
@@ -131,9 +161,9 @@ export const checkBookByIsbn = async (req: Request, res: Response) => {
 };
 
 export const deleteBookByIsbn = async (req: Request, res: Response) => {
-  const { token, isbn } = req.query;
-  const bookInfo = await Book.findOneAndDelete({
-    userId: token,
+  const { isbn } = req.query;
+  const bookInfo = await Books.findOneAndDelete({
+    userId: req.user.id,
     ea_isbn: isbn,
   });
   if (!bookInfo) {
