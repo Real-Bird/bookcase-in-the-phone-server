@@ -4,10 +4,11 @@
   "description": "back-end for BiP",
   "main": "index.ts",
   "scripts": {
-    "start": "cross-env NODE_ENV=production pm2 start build/index.js --watch -i 1 && pm2 log",
+    "start": "cross-env NODE_ENV=production pm2 start build/src/index.js --watch -i 1 && pm2 log",
     "build": "tsc",
     "dev": "nodemon --exec node --experimental-modules --es-module-specifier-resolution=node --loader ts-node/esm src/index.ts",
-    "preview": "nodemon --exec node dist/index"
+    "preview": "nodemon --exec node build/src/index.js",
+    "preview:pm2": "pm2 start build/src/index.js --watch -i 1 && pm2 log"
   },
   "author": "Real-Bird",
   "license": "ISC",
