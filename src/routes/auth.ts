@@ -7,6 +7,8 @@ router.get("/login", authCtrl.login);
 
 router.get("/logout", authCtrl.logout);
 
+router.get("/disconnect", authCtrl.disconnect);
+
 router.get("/google", authCtrl.reqGoogle);
 
 router.get(

@@ -36,23 +36,6 @@ const corsOptions: cors.CorsOptions = {
 
 app.use(cors(corsOptions));
 
-const sessionOption: session.SessionOptions = {
-  name: "myBiPSession",
-  resave: false,
-  saveUninitialized: false,
-  secret: process.env.COOKIE_SECRET,
-  proxy: false,
-  cookie: {
-    httpOnly: true,
-    secure: true,
-    maxAge: 7 * 24 * 60 * 60 * 1000,
-  },
-};
-
-if (process.env.NODE_ENV === "production") {
-  sessionOption.proxy = true;
-}
-
 app.use(passport.initialize());
 
 app.use("/auth", authRouter);

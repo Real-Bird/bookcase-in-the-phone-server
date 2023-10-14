@@ -1,14 +1,13 @@
 import { CookieOptions, Request, Response } from "express";
 import Users from "../db/user";
+import Books from "../db/book";
 import callPassport from "../libs/passport";
 import { config } from "dotenv";
 import {
   REFRESH_EXPIRES_IN,
   checkedToken,
-  createAccessToken,
   createRefreshToken,
   revalidateAccessToken,
-  verifyToken,
 } from "../libs/jwtValidate";
 
 config();
@@ -23,27 +22,26 @@ const cookieOption: CookieOptions = {
 export const login = (req: Request, res: Response) => {
   const refreshToken = req.cookies[REFRESH_TOKEN_KEY];
   if (!refreshToken) {
-    res
+    res.clearCookie(REFRESH_TOKEN_KEY);
+    return res
       .status(401)
       .json({ error: true, message: "Do not exist your refresh token" });
-    return;
   }
   const checkedRefreshToken = checkedToken(refreshToken);
   if (!checkedRefreshToken) {
-    res.status(403).json({ error: true, message: "Not Authorized" });
+    res.clearCookie(REFRESH_TOKEN_KEY);
+    return res.status(403).json({ error: true, message: "Not Authorized" });
   } else {
-    const accessToken = createAccessToken(checkedRefreshToken.id);
-
-    res.status(200).json({
+    return res.status(200).json({
       error: false,
       message: "Successfully Logged In",
-      accessToken,
     });
   }
 };
 
 export const logout = (req: Request, res: Response) => {
   return req.logout(() => {
+    res.clearCookie(REFRESH_TOKEN_KEY);
     res.status(204).end();
   });
 };
@@ -51,14 +49,15 @@ export const logout = (req: Request, res: Response) => {
 export const check = async (req: Request, res: Response) => {
   const refreshToken = req.cookies[REFRESH_TOKEN_KEY];
   if (!refreshToken) {
-    res
+    res.clearCookie(REFRESH_TOKEN_KEY);
+    return res
       .status(400)
       .json({ error: true, message: "Do not exist your refresh token" });
-    return;
   }
   const checkedRefreshToken = checkedToken(refreshToken);
   if (!checkedRefreshToken) {
-    res.status(400).json({ error: true, message: "Not Authorized" });
+    res.clearCookie(REFRESH_TOKEN_KEY);
+    return res.status(400).json({ error: true, message: "Not Authorized" });
   }
   const token = req.headers.authorization.split(" ")[1];
   if (!token) {
@@ -71,6 +70,7 @@ export const check = async (req: Request, res: Response) => {
   if (!verifiedToken) {
     revalidatedToken = revalidateAccessToken(refreshToken);
     if (!revalidatedToken) {
+      res.clearCookie(REFRESH_TOKEN_KEY);
       return res
         .status(403)
         .json({ error: true, message: "Your refresh token is not available" });
@@ -92,6 +92,18 @@ export const check = async (req: Request, res: Response) => {
   });
 };
 
+export const disconnect = async (req: Request, res: Response) => {
+  const refreshToken = checkedToken(req.cookies[REFRESH_TOKEN_KEY]);
+  if (refreshToken) {
+    await Users.deleteOne({ id: refreshToken.id });
+    await Books.deleteMany({ userId: refreshToken.id });
+    return req.logout(() => {
+      res.clearCookie(REFRESH_TOKEN_KEY);
+      res.status(204).end();
+    });
+  }
+};
+
 export const reqGoogle = passport.authenticate("google", {
   scope: ["profile", "email"],
 });
@@ -109,5 +121,5 @@ export const saveGoogleUserInfo = (req: Request, res: Response) => {
     ...cookieOption,
     maxAge: REFRESH_EXPIRES_IN * 1000,
   });
-  res.status(200).redirect(`${process.env.ALLOW_ORIGIN}/login`);
+  return res.status(200).redirect(`${process.env.ALLOW_ORIGIN}/login`);
 };

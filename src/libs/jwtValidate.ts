@@ -48,6 +48,7 @@ export const revalidateAccessToken: RevalidateAccessToken = (refreshToken) => {
   return {
     newToken: createAccessToken(checkedRefreshToken.id),
     userId: checkedRefreshToken.id,
+    username: checkedRefreshToken.username,
   };
 };
 
@@ -59,4 +60,4 @@ type Userinfo = {
 type CheckedToken = (token: string) => Userinfo | false;
 type RevalidateAccessToken = (
   refreshToken: string
-) => { newToken: string; userId: string } | null;
+) => { newToken: string; userId: string; username: string } | null;
