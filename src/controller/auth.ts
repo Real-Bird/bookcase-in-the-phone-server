@@ -60,21 +60,28 @@ export const check = async (req: Request, res: Response) => {
     return res.status(400).json({ error: true, message: "Not Authorized" });
   }
   const token = req.headers.authorization.split(" ")[1];
+  const revalidatedToken = revalidateAccessToken(refreshToken);
   if (!token) {
+    if (checkedRefreshToken) {
+      return res.status(200).json({
+        error: false,
+        message: "Successfully checked",
+        userInfo: {
+          username: checkedRefreshToken.username,
+          newAccessToken: revalidatedToken.newToken,
+        },
+      });
+    }
     return res
       .status(401)
       .json({ error: true, message: "Not found access token" });
   }
   const verifiedToken = checkedToken(token);
-  let revalidatedToken;
-  if (!verifiedToken) {
-    revalidatedToken = revalidateAccessToken(refreshToken);
-    if (!revalidatedToken) {
-      res.clearCookie(REFRESH_TOKEN_KEY);
-      return res
-        .status(403)
-        .json({ error: true, message: "Your refresh token is not available" });
-    }
+  if (!verifiedToken && !revalidatedToken) {
+    res.clearCookie(REFRESH_TOKEN_KEY);
+    return res
+      .status(403)
+      .json({ error: true, message: "Your refresh token is not available" });
   }
   const user = await Users.findOne({
     id: verifiedToken ? verifiedToken.id : revalidatedToken.userId,

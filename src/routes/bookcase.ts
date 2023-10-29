@@ -13,6 +13,11 @@ router.patch("/info", bookcaseCtrl.getToken, bookcaseCtrl.updateBookInfoByIsbn);
 
 router.delete("/info", bookcaseCtrl.getToken, bookcaseCtrl.deleteBookByIsbn);
 
-router.get("/check", bookcaseCtrl.getToken, bookcaseCtrl.checkBookByIsbn);
+router.get(
+  "/check",
+  bookcaseCtrl.getToken,
+  bookcaseCtrl.checkBookByIsbn,
+  bookcaseCtrl.getBookInfoFromApi
+);
 
 export default router;

@@ -1,7 +1,6 @@
 import { config } from "dotenv";
 import express from "express";
 import path from "path";
-import session from "express-session";
 import cookieParser from "cookie-parser";
 import cors from "cors";
 import passport from "passport";
