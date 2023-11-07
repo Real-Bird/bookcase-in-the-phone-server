@@ -4,7 +4,7 @@ import jwt from "jsonwebtoken";
 config();
 
 const JWT_TOKEN_SALT = process.env.JWT_SECRET;
-export const REFRESH_EXPIRES_IN = 60 * 60 * 24 * 7 * 1000;
+export const REFRESH_EXPIRES_IN = 60 * 60 * 24 * 7;
 export const ACCESS_EXPIRES_IN = REFRESH_EXPIRES_IN / 7;
 
 export const createRefreshToken = ({ id, username }: Userinfo) => {
