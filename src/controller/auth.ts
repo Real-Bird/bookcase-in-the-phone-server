@@ -17,6 +17,7 @@ const passport = callPassport();
 const cookieOption: CookieOptions = {
   httpOnly: true,
   secure: true,
+  sameSite: "none",
 };
 
 export const login = (req: Request, res: Response) => {
@@ -40,9 +41,9 @@ export const login = (req: Request, res: Response) => {
 };
 
 export const logout = (req: Request, res: Response) => {
+  res.clearCookie(REFRESH_TOKEN_KEY);
   return req.logout(() => {
-    res.clearCookie(REFRESH_TOKEN_KEY);
-    res.status(204).end();
+    res.status(204).json({ error: false, message: "Successfully logged out" });
   });
 };
 
